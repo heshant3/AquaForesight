@@ -5,6 +5,7 @@ import {
   StatusBar,
   SafeAreaView,
   Image,
+  ScrollView,
 } from "react-native";
 import React from "react";
 import {
@@ -42,6 +43,66 @@ export default function Analyse() {
         <View style={styles.Header}>
           <Text style={styles.HeaderText}>Analyse</Text>
         </View>
+        <View style={styles.view2}>
+          <ScrollView
+            contentContainerStyle={styles.Scroll}
+            showsVerticalScrollIndicator={false}
+          >
+            <BlurView
+              experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>Timer</Text>
+              </View>
+            </BlurView>
+
+            <BlurView
+              experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>Timer</Text>
+              </View>
+            </BlurView>
+
+            <BlurView
+              experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>Timer</Text>
+              </View>
+            </BlurView>
+            <BlurView
+              experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>Timer</Text>
+              </View>
+            </BlurView>
+
+            <BlurView
+              experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>Timer</Text>
+              </View>
+            </BlurView>
+          </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -76,8 +137,33 @@ const styles = ScaledSheet.create({
     fontFamily: "Inter_700Bold",
     fontSize: "25@mvs",
   },
+
   Middle: {
     flex: 1,
-    backgroundColor: "red",
+    alignItems: "center",
+  },
+
+  Scroll: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+
+  view2: {
+    flexDirection: "column",
+    flex: 1,
+  },
+
+  Box: {
+    marginTop: 10,
+    width: "90%",
+    height: "200@mvs",
+    overflow: "hidden",
+    borderRadius: 30,
+    borderColor: "#fff",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 30,
   },
 });

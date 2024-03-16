@@ -7,7 +7,6 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
-  ProgressBarAndroidBase,
 } from "react-native";
 import React, { useState } from "react";
 import {
