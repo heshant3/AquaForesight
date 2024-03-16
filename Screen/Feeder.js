@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
+  ProgressBarAndroidBase,
 } from "react-native";
 import React, { useState } from "react";
 import {
@@ -18,7 +19,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { BlurView } from "expo-blur";
 import { ScaledSheet } from "react-native-size-matters";
-import { ProgressBar } from "react-native-paper";
+import ProgressBar from "react-native-progress/Bar";
 
 export default function Feeder() {
   const [text, setText] = useState("");
@@ -110,6 +111,14 @@ export default function Feeder() {
               style={styles.BoxBottomFood}
             >
               <View style={styles.Box1}>
+                <View style={styles.progressBar}>
+                  <ProgressBar
+                    progress={0.1}
+                    width={380}
+                    height={30}
+                    color={"#fff"}
+                  />
+                </View>
                 <Text style={styles.NameText}>Food</Text>
               </View>
             </BlurView>
@@ -246,7 +255,7 @@ const styles = ScaledSheet.create({
   },
 
   BoxBottomFood: {
-    width: "70%",
+    width: "50%",
     height: "80%",
     overflow: "hidden",
     borderRadius: 10,
@@ -254,5 +263,14 @@ const styles = ScaledSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  progressBar: {
+    marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    transform: [{ rotate: "270deg" }], // Rotate the container by 90 degrees
+    height: "90%", // Adjust container height to fit the rotated progress bar
+    width: 20, // Adjust container width to fit the rotated progress bar
   },
 });
