@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useFonts,
   Inter_400Regular,
@@ -19,9 +19,53 @@ import {
 import { BlurView } from "expo-blur";
 import { ScaledSheet } from "react-native-size-matters";
 import ProgressBar from "react-native-progress/Bar";
+import { ref, onValue, set } from "firebase/database";
+import { db } from "../config";
 
 export default function Feeder() {
-  const [text, setText] = useState("");
+  const [status, setStatus] = useState(true);
+  const [text, setText] = useState();
+  const [buttonPressed, setButtonPressed] = useState(false);
+
+  useEffect(() => {
+    const statusRef = ref(db, "delays");
+
+    onValue(statusRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && typeof data === "object" && "status" in data) {
+        setStatus(data.status);
+      }
+    });
+  }, []);
+
+  const handlePressIn = () => {
+    // Set buttonPressed to true when pressed
+    setButtonPressed(true);
+    // Update the database with the pressed value
+    set(ref(db, "delays/button"), 1);
+  };
+
+  const handlePressOut = () => {
+    // Set buttonPressed to false when released
+    setButtonPressed(false);
+    // Update the database with the released value
+    set(ref(db, "delays/button"), 0);
+  };
+
+  const handleTextChange = (value) => {
+    const numericValue = parseFloat(value);
+
+    if (!isNaN(numericValue)) {
+      // Check if the parsed value is a valid number
+      setText(value); // Update local state with the current text value
+      // Update database with the new value
+      set(ref(db, "delays/timer"), numericValue);
+    } else {
+      setText(""); // Clear the local state if the value is not a valid number
+      set(ref(db, "delays/timer"), 0);
+    }
+  };
+
   let [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -55,7 +99,9 @@ export default function Feeder() {
           >
             <View style={styles.Box2}>
               <Text style={styles.NameTextMiddle}>Fish Feeder Status</Text>
-              <Text style={styles.ValueTextMiddle}>ON</Text>
+              <Text style={styles.ValueTextMiddle}>
+                {status ? "ON" : "OFF"}
+              </Text>
             </View>
           </BlurView>
         </View>
@@ -74,7 +120,7 @@ export default function Feeder() {
                   placeholder="Enter Timer"
                   color="#fff"
                   placeholderTextColor="#fff"
-                  onChangeText={(value) => setText(value)}
+                  onChangeText={handleTextChange}
                   value={text}
                   keyboardType="numeric"
                 />
@@ -89,11 +135,13 @@ export default function Feeder() {
             >
               <TouchableOpacity
                 style={{
-                  height: "100%",
-                  width: "100%",
+                  height: 100,
+                  width: 200,
                   justifyContent: "center",
                   alignItems: "center",
                 }}
+                onPressIn={handlePressIn} // Called when pressed
+                onPressOut={handlePressOut} // Called when released
               >
                 <View style={styles.Box1}>
                   <Text style={styles.NameText}>Fish Feeder</Text>
