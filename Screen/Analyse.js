@@ -17,6 +17,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { BlurView } from "expo-blur";
 import { ScaledSheet } from "react-native-size-matters";
+import { LineChart, BarChart } from "react-native-chart-kit";
 
 export default function Analyse() {
   let [fontsLoaded, fontError] = useFonts({
@@ -29,6 +30,32 @@ export default function Analyse() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
+
+  // Sample data for the LineChart
+  const data = {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        data: [20, 45, 28, 80, 100, 43, 10],
+        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+        strokeWidth: 4,
+      },
+    ],
+  };
+
+  // Chart configuration
+  const chartConfig = {
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientToOpacity: 0,
+
+    color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    strokeWidth: 2,
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false,
+    decimalPlaces: 0,
+  };
+
   return (
     <SafeAreaView
       style={styles.container}
@@ -55,8 +82,15 @@ export default function Analyse() {
               style={styles.Box}
             >
               <View style={styles.Box1}>
-                <Text style={styles.NameText}>Timer</Text>
+                <Text style={styles.NameText}>Temperature</Text>
               </View>
+              <LineChart
+                data={data}
+                width={360}
+                height={160}
+                chartConfig={chartConfig}
+                yAxisSuffix={" °C"}
+              />
             </BlurView>
 
             <BlurView
@@ -162,8 +196,18 @@ const styles = ScaledSheet.create({
     borderRadius: 30,
     borderColor: "#fff",
     borderWidth: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
     marginBottom: 30,
+  },
+
+  Box1: {
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  NameText: {
+    color: "white",
+    fontFamily: "Inter_700Bold",
+    fontSize: "15@mvs",
   },
 });

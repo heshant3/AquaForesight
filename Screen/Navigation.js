@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Home from "./Home";
 import Feeder from "./Feeder";
 import Analyse from "./Analyse";
-
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Navigation Imported

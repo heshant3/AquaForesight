@@ -82,7 +82,7 @@ export default function Home() {
               <View style={styles.Box1}>
                 <FontAwesome6 name="temperature-half" size={30} color="#fff" />
                 <Text style={styles.NameText}>Temperature</Text>
-                <Text style={styles.ValueText}>{temperature}</Text>
+                <Text style={styles.ValueText}>{temperature}°C</Text>
               </View>
             </BlurView>
             <BlurView

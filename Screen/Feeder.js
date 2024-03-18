@@ -24,7 +24,7 @@ import { db } from "../config";
 
 export default function Feeder() {
   const [status, setStatus] = useState(true);
-  const [text, setText] = useState();
+  const [text, setText] = useState("");
   const [buttonPressed, setButtonPressed] = useState(false);
 
   useEffect(() => {
@@ -43,6 +43,9 @@ export default function Feeder() {
     setButtonPressed(true);
     // Update the database with the pressed value
     set(ref(db, "delays/button"), 1);
+    set(ref(db, "delays/status"), 1);
+    set(ref(db, "delays/timer"), 0);
+    setText("0");
   };
 
   const handlePressOut = () => {
@@ -50,6 +53,7 @@ export default function Feeder() {
     setButtonPressed(false);
     // Update the database with the released value
     set(ref(db, "delays/button"), 0);
+    set(ref(db, "delays/status"), 0);
   };
 
   const handleTextChange = (value) => {
