@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,7 +8,6 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import React from "react";
 import {
   useFonts,
   Inter_400Regular,
@@ -17,15 +17,32 @@ import {
 } from "@expo-google-fonts/inter";
 import { BlurView } from "expo-blur";
 import { ScaledSheet } from "react-native-size-matters";
-import { LineChart, BarChart } from "react-native-chart-kit";
+import { LineChart } from "react-native-chart-kit";
 
 export default function Analyse() {
-  let [fontsLoaded, fontError] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_300Light,
     Inter_700Bold,
   });
+
+  const [clickedDataPoint, setClickedDataPoint] = useState(null);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    let hideTimer;
+
+    if (clickedDataPoint) {
+      hideTimer = setTimeout(() => {
+        setClickedDataPoint(null);
+      }, 5000); // Hide after 10 seconds
+    }
+
+    return () => {
+      clearTimeout(hideTimer);
+    };
+  }, [clickedDataPoint]);
 
   if (!fontsLoaded && !fontError) {
     return null;
@@ -56,6 +73,59 @@ export default function Analyse() {
     decimalPlaces: 0,
   };
 
+  // Render custom labels for data points
+  const renderCustomLabels = ({ x, y, value }) => {
+    return (
+      <Text
+        key={value}
+        style={{
+          position: "absolute",
+          top: y - 20,
+          left: x - 20,
+          color: "white",
+          fontFamily: "Inter_700Bold",
+          fontSize: 14,
+          zIndex: 10, // Ensure it's above the chart
+        }}
+      >
+        {value}
+      </Text>
+    );
+  };
+
+  // Handle data point click event
+  const handleDataPointClick = (dataPoint, datasetIndex) => {
+    setClickedDataPoint({ dataPoint, datasetIndex });
+  };
+
+  // DataPointCard component to render small card near clicked data point
+  const DataPointCard = ({ x, y, value }) => {
+    if (!x || !y) return null;
+
+    return (
+      <View
+        style={{
+          position: "absolute",
+          left: x + 8,
+          top: y + 110, // Adjust the position as needed
+          backgroundColor: "white",
+          padding: 8,
+          borderRadius: 8,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}
+      >
+        <Text>{value}</Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView
       style={styles.container}
@@ -84,60 +154,28 @@ export default function Analyse() {
               <View style={styles.Box1}>
                 <Text style={styles.NameText}>Temperature</Text>
               </View>
-              <LineChart
-                data={data}
-                width={360}
-                height={160}
-                chartConfig={chartConfig}
-                yAxisSuffix={" °C"}
-              />
-            </BlurView>
-
-            <BlurView
-              experimentalBlurMethod="dimezisBlurView"
-              intensity={50}
-              tint="default"
-              style={styles.Box}
-            >
-              <View style={styles.Box1}>
-                <Text style={styles.NameText}>Timer</Text>
-              </View>
-            </BlurView>
-
-            <BlurView
-              experimentalBlurMethod="dimezisBlurView"
-              intensity={50}
-              tint="default"
-              style={styles.Box}
-            >
-              <View style={styles.Box1}>
-                <Text style={styles.NameText}>Timer</Text>
-              </View>
-            </BlurView>
-            <BlurView
-              experimentalBlurMethod="dimezisBlurView"
-              intensity={50}
-              tint="default"
-              style={styles.Box}
-            >
-              <View style={styles.Box1}>
-                <Text style={styles.NameText}>Timer</Text>
-              </View>
-            </BlurView>
-
-            <BlurView
-              experimentalBlurMethod="dimezisBlurView"
-              intensity={50}
-              tint="default"
-              style={styles.Box}
-            >
-              <View style={styles.Box1}>
-                <Text style={styles.NameText}>Timer</Text>
+              <View ref={chartRef}>
+                <LineChart
+                  data={data}
+                  width={360}
+                  height={160}
+                  chartConfig={chartConfig}
+                  yAxisSuffix={" °C"}
+                  renderCustomLabels={renderCustomLabels}
+                  onDataPointClick={handleDataPointClick}
+                />
               </View>
             </BlurView>
           </ScrollView>
         </View>
       </View>
+      {clickedDataPoint && (
+        <DataPointCard
+          x={clickedDataPoint.dataPoint.x}
+          y={clickedDataPoint.dataPoint.y}
+          value={clickedDataPoint.dataPoint.value}
+        />
+      )}
     </SafeAreaView>
   );
 }

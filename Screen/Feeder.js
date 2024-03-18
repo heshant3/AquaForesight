@@ -64,9 +64,11 @@ export default function Feeder() {
       setText(value); // Update local state with the current text value
       // Update database with the new value
       set(ref(db, "delays/timer"), numericValue);
+      set(ref(db, "delays/status"), 1);
     } else {
       setText(""); // Clear the local state if the value is not a valid number
       set(ref(db, "delays/timer"), 0);
+      set(ref(db, "delays/status"), 0);
     }
   };
 
