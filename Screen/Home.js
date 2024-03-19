@@ -21,30 +21,48 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
-import { ref, onValue, off, onChildAdded } from "firebase/database";
+import {
+  ref,
+  onValue,
+  off,
+  onChildAdded,
+  onChildChanged,
+} from "firebase/database";
 import { db } from "../config";
 
 export default function Home() {
-  const [temperature, setTemperature] = useState(null);
+  const [sensorData, setSensorData] = useState(null);
 
   useEffect(() => {
-    const temperatureRef = ref(db, "Temperature");
-
-    const fetchTemperature = () => {
-      onChildAdded(temperatureRef, (snapshot) => {
-        const newTemperature = snapshot.val().Level;
-        setTemperature(newTemperature);
+    const fetchData = () => {
+      const sensorsRef = ref(db, "SensorData");
+      onChildChanged(sensorsRef, (snapshot) => {
+        const newData = snapshot.val();
+        setSensorData(newData);
       });
     };
 
-    fetchTemperature();
+    fetchData();
 
-    // Cleanup function to remove the listener when component unmounts
     return () => {
-      // Detach the listener when the component unmounts
-      off(temperatureRef);
+      off(ref(db, "SensorData"));
     };
   }, []);
+
+  let temperature, pH, turbidity, tds;
+
+  if (sensorData) {
+    temperature =
+      sensorData.Temperature !== undefined
+        ? sensorData.Temperature.toFixed(1)
+        : "0.0";
+    pH = sensorData.pH !== undefined ? sensorData.pH.toFixed(1) : "0.0";
+    turbidity =
+      sensorData.Turbidity !== undefined
+        ? sensorData.Turbidity.toFixed(1)
+        : "0.0";
+    tds = sensorData.TDS !== undefined ? sensorData.TDS.toFixed(1) : "0.0";
+  }
 
   let [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -113,7 +131,7 @@ export default function Home() {
                     color="#fff"
                   />
                   <Text style={styles.NameText}>Ph value</Text>
-                  <Text style={styles.ValueText}>6</Text>
+                  <Text style={styles.ValueText}>{pH}</Text>
                 </View>
               </BlurView>
               <BlurView
@@ -125,7 +143,7 @@ export default function Home() {
                 <View style={styles.Box1}>
                   <Entypo name="water" size={30} color="#fff" />
                   <Text style={styles.NameText}>Turbidity</Text>
-                  <Text style={styles.ValueText}>10</Text>
+                  <Text style={styles.ValueText}>{turbidity} NTU</Text>
                 </View>
               </BlurView>
             </View>
@@ -143,10 +161,8 @@ export default function Home() {
                   size={20}
                   color="#fff"
                 />
-                <Text style={styles.NameTextBottom}>
-                  Total Dissolved solids level
-                </Text>
-                <Text style={styles.ValueTextBottom}>10</Text>
+                <Text style={styles.NameTextBottom}>TDS</Text>
+                <Text style={styles.ValueTextBottom}>{tds} ppm</Text>
               </View>
             </BlurView>
           </View>
@@ -256,9 +272,10 @@ const styles = ScaledSheet.create({
   },
 
   ValueText: {
+    marginTop: 10,
     color: "white",
     fontFamily: "Inter_500Medium",
-    fontSize: "30@mvs",
+    fontSize: "25@mvs",
   },
   NameTextBottom: {
     color: "white",
