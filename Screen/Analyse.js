@@ -18,8 +18,19 @@ import {
 import { BlurView } from "expo-blur";
 import { ScaledSheet } from "react-native-size-matters";
 import { LineChart } from "react-native-chart-kit";
+import { ref, onChildChanged, off, onChildAdded } from "firebase/database";
+import { db } from "../config";
+import { format } from "date-fns";
 
 export default function Analyse() {
+  const [sensorData, setSensorData] = useState([]);
+  const [sensorDataCount, setSensorDataCount] = useState(0);
+  const [sensorDataa, setSensorDataa] = useState(null);
+  console.log("Count", sensorDataCount);
+
+  const [clickedDataPoint, setClickedDataPoint] = useState(null);
+  const chartRef = useRef(null);
+
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -27,8 +38,34 @@ export default function Analyse() {
     Inter_700Bold,
   });
 
-  const [clickedDataPoint, setClickedDataPoint] = useState(null);
-  const chartRef = useRef(null);
+  useEffect(() => {
+    const fetchData = () => {
+      const sensorsRef = ref(db, "SensorData");
+      const handleChildAdded = (snapshot) => {
+        const newData = snapshot.val();
+        setSensorData((prevData) => [...prevData, newData]);
+        setSensorDataCount((prevCount) => prevCount + 1);
+      };
+      const handleChildChanged = (snapshot) => {
+        const newData = snapshot.val();
+        setSensorDataa(newData);
+      };
+
+      onChildAdded(sensorsRef, handleChildAdded);
+      onChildChanged(sensorsRef, handleChildChanged);
+
+      return () => {
+        off(sensorsRef, "child_added", handleChildAdded);
+        off(sensorsRef, "child_changed", handleChildChanged);
+      };
+    };
+
+    fetchData();
+
+    return () => {
+      off(ref(db, "SensorData"));
+    };
+  }, []);
 
   useEffect(() => {
     let hideTimer;
@@ -43,6 +80,20 @@ export default function Analyse() {
       clearTimeout(hideTimer);
     };
   }, [clickedDataPoint]);
+
+  let temperature, pH, turbidity, tds;
+
+  if (sensorDataa) {
+    temperature = sensorDataa.Temperature
+      ? sensorDataa.Temperature.toFixed(1)
+      : "0.0";
+    pH = sensorDataa.pH ? sensorDataa.pH.toFixed(1) : "0.0";
+    turbidity = sensorDataa.Turbidity
+      ? sensorDataa.Turbidity.toFixed(1)
+      : "0.0";
+    tds = sensorDataa.TDS ? sensorDataa.TDS.toFixed(1) : "0.0";
+  }
+  console.log(temperature);
 
   if (!fontsLoaded && !fontError) {
     return null;
@@ -64,7 +115,6 @@ export default function Analyse() {
   const chartConfig = {
     backgroundGradientFromOpacity: 0,
     backgroundGradientToOpacity: 0,
-
     color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
     strokeWidth: 2,
@@ -153,6 +203,9 @@ export default function Analyse() {
             >
               <View style={styles.Box1}>
                 <Text style={styles.NameText}>Temperature</Text>
+                {/* <Text style={styles.AverageText}>
+                  Average: {averageTemperature} °C
+                </Text> */}
               </View>
               <View ref={chartRef}>
                 <LineChart
@@ -247,5 +300,10 @@ const styles = ScaledSheet.create({
     color: "white",
     fontFamily: "Inter_700Bold",
     fontSize: "15@mvs",
+  },
+  AverageText: {
+    color: "white",
+    fontFamily: "Inter_400Regular",
+    fontSize: "12@mvs",
   },
 });
