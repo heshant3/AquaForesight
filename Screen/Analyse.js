@@ -20,13 +20,14 @@ import { ScaledSheet } from "react-native-size-matters";
 import { LineChart } from "react-native-chart-kit";
 import { ref, onChildChanged, off, onChildAdded } from "firebase/database";
 import { db } from "../config";
-import { format } from "date-fns";
 
 export default function Analyse() {
   const [sensorData, setSensorData] = useState([]);
   const [sensorDataCount, setSensorDataCount] = useState(0);
   const [sensorDataa, setSensorDataa] = useState(null);
-  console.log("Count", sensorDataCount);
+  const [sumTemperaturee, setsumTemperaturee] = useState(null);
+  // console.log(sumTemperaturee);
+  // console.log("Count", sensorDataCount);
 
   const [clickedDataPoint, setClickedDataPoint] = useState(null);
   const chartRef = useRef(null);
@@ -39,16 +40,36 @@ export default function Analyse() {
   });
 
   useEffect(() => {
+    let sumTemperature = 0;
+    let temperatureCount = 0;
+
     const fetchData = () => {
       const sensorsRef = ref(db, "SensorData");
+
       const handleChildAdded = (snapshot) => {
         const newData = snapshot.val();
         setSensorData((prevData) => [...prevData, newData]);
+
+        // Update sumTemperature and temperatureCount
+        if (newData && newData.Temperature !== undefined) {
+          sumTemperature += newData.Temperature;
+          temperatureCount++;
+        }
+
+        // Update sensorDataCount
         setSensorDataCount((prevCount) => prevCount + 1);
       };
+
       const handleChildChanged = (snapshot) => {
         const newData = snapshot.val();
         setSensorDataa(newData);
+
+        // If temperature changed, update sumTemperature and temperatureCount
+        if (newData && newData.Temperature !== undefined) {
+          sumTemperature += newData.Temperature - sensorDataa?.Temperature || 0;
+          temperatureCount++;
+          setsumTemperaturee(sumTemperature);
+        }
       };
 
       onChildAdded(sensorsRef, handleChildAdded);
@@ -67,21 +88,7 @@ export default function Analyse() {
     };
   }, []);
 
-  useEffect(() => {
-    let hideTimer;
-
-    if (clickedDataPoint) {
-      hideTimer = setTimeout(() => {
-        setClickedDataPoint(null);
-      }, 5000); // Hide after 10 seconds
-    }
-
-    return () => {
-      clearTimeout(hideTimer);
-    };
-  }, [clickedDataPoint]);
-
-  let temperature, pH, turbidity, tds;
+  let temperature, pH, turbidity, tds, datee;
 
   if (sensorDataa) {
     temperature = sensorDataa.Temperature
@@ -92,19 +99,61 @@ export default function Analyse() {
       ? sensorDataa.Turbidity.toFixed(1)
       : "0.0";
     tds = sensorDataa.TDS ? sensorDataa.TDS.toFixed(1) : "0.0";
+    datee = sensorDataa.Date;
   }
-  console.log(temperature);
+  console.log("Date:", datee);
+  // console.log(sumTemperaturee / sensorDataCount);
 
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
+  const calculateWeeklyTemperature = () => {
+    const weeklyTemperature = [0, 0, 0, 0, 0, 0, 0];
+
+    const currentDate = new Date();
+    const oneWeekAgo = new Date(
+      currentDate.getTime() - 7 * 24 * 60 * 60 * 1000
+    ); // Get date from one week ago
+
+    // Filter sensor data for the last week
+    const lastWeekData = sensorData.filter(
+      (data) => new Date(data.Date) >= oneWeekAgo
+    );
+
+    lastWeekData.forEach((data) => {
+      const date = new Date(data.Date);
+      const dayIndex = date.getDay();
+      if (!isNaN(data.Temperature)) {
+        weeklyTemperature[dayIndex] += data.Temperature;
+      }
+    });
+
+    for (let i = 0; i < weeklyTemperature.length; i++) {
+      const dayData = lastWeekData.filter(
+        (data) => new Date(data.Date).getDay() === i && !isNaN(data.Temperature)
+      );
+      const dayTemperatureSum = dayData.reduce(
+        (sum, data) => sum + data.Temperature,
+        0
+      );
+      const dayTemperatureCount = dayData.length;
+      weeklyTemperature[i] = dayTemperatureCount
+        ? dayTemperatureSum / dayTemperatureCount
+        : 0;
+    }
+
+    return weeklyTemperature;
+  };
+
+  console.log(calculateWeeklyTemperature());
+
   // Sample data for the LineChart
   const data = {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    labels: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     datasets: [
       {
-        data: [20, 45, 28, 80, 100, 43, 10],
+        data: calculateWeeklyTemperature(), // Assign the calculated value to the first element
         color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
         strokeWidth: 4,
       },
