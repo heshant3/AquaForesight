@@ -98,7 +98,7 @@ export default function Feeder() {
         </View>
         <View style={styles.Middle}>
           <BlurView
-            experimentalBlurMethod="dimezisBlurView"
+            // experimentalBlurMethod="dimezisBlurView"
             intensity={50}
             tint="default"
             style={styles.Box}
@@ -114,7 +114,7 @@ export default function Feeder() {
         <View style={styles.Bottom}>
           <View style={styles.BottomLeft}>
             <BlurView
-              experimentalBlurMethod="dimezisBlurView"
+              // experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBottom}
@@ -134,7 +134,7 @@ export default function Feeder() {
             </BlurView>
 
             <BlurView
-              experimentalBlurMethod="dimezisBlurView"
+              // experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBottom}
@@ -158,7 +158,7 @@ export default function Feeder() {
           </View>
           <View style={styles.BottomRight}>
             <BlurView
-              experimentalBlurMethod="dimezisBlurView"
+              // experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBottomFood}

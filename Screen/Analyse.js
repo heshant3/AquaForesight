@@ -22,15 +22,20 @@ import { ref, onChildChanged, off, onChildAdded } from "firebase/database";
 import { db } from "../config";
 
 export default function Analyse() {
-  const [sensorData, setSensorData] = useState([]);
-  const [sensorDataCount, setSensorDataCount] = useState(0);
-  const [sensorDataa, setSensorDataa] = useState(null);
-  const [sumTemperaturee, setsumTemperaturee] = useState(null);
-  // console.log(sumTemperaturee);
-  // console.log("Count", sensorDataCount);
-
-  const [clickedDataPoint, setClickedDataPoint] = useState(null);
   const chartRef = useRef(null);
+  const [sensorData, setSensorData] = useState([]);
+  const [dailyAverages, setDailyAverages] = useState({
+    Mon: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+    Tue: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+    Wed: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+    Thu: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+    Fri: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+    Sat: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+    Sun: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+  });
+
+  // console.log("Temp", AverageTemperature);
+  // console.log("Turb", AverageTurbidity);
 
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -40,120 +45,170 @@ export default function Analyse() {
   });
 
   useEffect(() => {
-    let sumTemperature = 0;
-    let temperatureCount = 0;
+    let isMounted = true;
 
     const fetchData = () => {
       const sensorsRef = ref(db, "SensorData");
 
       const handleChildAdded = (snapshot) => {
         const newData = snapshot.val();
-        setSensorData((prevData) => [...prevData, newData]);
-
-        // Update sumTemperature and temperatureCount
-        if (newData && newData.Temperature !== undefined) {
-          sumTemperature += newData.Temperature;
-          temperatureCount++;
-        }
-
-        // Update sensorDataCount
-        setSensorDataCount((prevCount) => prevCount + 1);
-      };
-
-      const handleChildChanged = (snapshot) => {
-        const newData = snapshot.val();
-        setSensorDataa(newData);
-
-        // If temperature changed, update sumTemperature and temperatureCount
-        if (newData && newData.Temperature !== undefined) {
-          sumTemperature += newData.Temperature - sensorDataa?.Temperature || 0;
-          temperatureCount++;
-          setsumTemperaturee(sumTemperature);
+        if (isMounted) {
+          setSensorData((prevData) => [...prevData, newData]);
         }
       };
 
       onChildAdded(sensorsRef, handleChildAdded);
-      onChildChanged(sensorsRef, handleChildChanged);
 
       return () => {
+        isMounted = false;
         off(sensorsRef, "child_added", handleChildAdded);
-        off(sensorsRef, "child_changed", handleChildChanged);
       };
     };
 
     fetchData();
+  }, []); // Empty dependency array, so this effect runs only once
 
-    return () => {
-      off(ref(db, "SensorData"));
+  useEffect(() => {
+    // Initialize an object to hold daily averages
+    const dailyAverages = {
+      Mon: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+      Tue: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+      Wed: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+      Thu: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+      Fri: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+      Sat: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
+      Sun: { pH: 0, Temperature: 0, Turbidity: 0, TDS: 0 },
     };
-  }, []);
 
-  let temperature, pH, turbidity, tds, datee;
+    // Initialize an object to count the number of data points for each day
+    const dailyCounts = {
+      Mon: 0,
+      Tue: 0,
+      Wed: 0,
+      Thu: 0,
+      Fri: 0,
+      Sat: 0,
+      Sun: 0,
+    };
 
-  if (sensorDataa) {
-    temperature = sensorDataa.Temperature
-      ? sensorDataa.Temperature.toFixed(1)
-      : "0.0";
-    pH = sensorDataa.pH ? sensorDataa.pH.toFixed(1) : "0.0";
-    turbidity = sensorDataa.Turbidity
-      ? sensorDataa.Turbidity.toFixed(1)
-      : "0.0";
-    tds = sensorDataa.TDS ? sensorDataa.TDS.toFixed(1) : "0.0";
-    datee = sensorDataa.Date;
-  }
-  console.log("Date:", datee);
-  // console.log(sumTemperaturee / sensorDataCount);
+    const getDayOfWeekFromDate = (dateString) => {
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const date = new Date(dateString);
+      return daysOfWeek[date.getDay()];
+    };
+
+    // Filter sensorData for the last week
+    const today = new Date();
+    const oneWeekAgo = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - 7
+    );
+    const lastWeekData = sensorData.filter((data) => {
+      const dataDate = new Date(data.Date);
+      return dataDate >= oneWeekAgo && dataDate < today;
+    });
+
+    // Iterate through lastWeekData to accumulate daily totals and counts
+    lastWeekData.forEach((data) => {
+      const dayOfWeek = getDayOfWeekFromDate(data.Date);
+      dailyAverages[dayOfWeek].pH += data.pH || 0;
+      dailyAverages[dayOfWeek].Temperature += data.Temperature || 0;
+      dailyAverages[dayOfWeek].Turbidity += data.Turbidity || 0;
+      dailyAverages[dayOfWeek].TDS += data.TDS || 0;
+      dailyCounts[dayOfWeek]++;
+    });
+
+    // Calculate daily averages and update state
+    const updatedDailyAverages = { ...dailyAverages }; // Create a copy to avoid mutating state directly
+    for (const day in updatedDailyAverages) {
+      if (dailyCounts[day] > 0) {
+        updatedDailyAverages[day].pH /= dailyCounts[day];
+        updatedDailyAverages[day].Temperature /= dailyCounts[day];
+        updatedDailyAverages[day].Turbidity /= dailyCounts[day];
+        updatedDailyAverages[day].TDS /= dailyCounts[day];
+      }
+    }
+
+    // Update state for daily averages
+    setDailyAverages(updatedDailyAverages);
+  }, [sensorData]); // Make sure to include sensorData as dependency
 
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
-  const calculateWeeklyTemperature = () => {
-    const weeklyTemperature = [0, 0, 0, 0, 0, 0, 0];
-
-    const currentDate = new Date();
-    const oneWeekAgo = new Date(
-      currentDate.getTime() - 7 * 24 * 60 * 60 * 1000
-    ); // Get date from one week ago
-
-    // Filter sensor data for the last week
-    const lastWeekData = sensorData.filter(
-      (data) => new Date(data.Date) >= oneWeekAgo
-    );
-
-    lastWeekData.forEach((data) => {
-      const date = new Date(data.Date);
-      const dayIndex = date.getDay();
-      if (!isNaN(data.Temperature)) {
-        weeklyTemperature[dayIndex] += data.Temperature;
-      }
-    });
-
-    for (let i = 0; i < weeklyTemperature.length; i++) {
-      const dayData = lastWeekData.filter(
-        (data) => new Date(data.Date).getDay() === i && !isNaN(data.Temperature)
-      );
-      const dayTemperatureSum = dayData.reduce(
-        (sum, data) => sum + data.Temperature,
-        0
-      );
-      const dayTemperatureCount = dayData.length;
-      weeklyTemperature[i] = dayTemperatureCount
-        ? dayTemperatureSum / dayTemperatureCount
-        : 0;
-    }
-
-    return weeklyTemperature;
-  };
-
-  console.log(calculateWeeklyTemperature());
-
   // Sample data for the LineChart
-  const data = {
-    labels: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  const phData = {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [
       {
-        data: calculateWeeklyTemperature(), // Assign the calculated value to the first element
+        data: [
+          dailyAverages.Mon.pH,
+          dailyAverages.Tue.pH,
+          dailyAverages.Wed.pH,
+          dailyAverages.Thu.pH,
+          dailyAverages.Fri.pH,
+          dailyAverages.Sat.pH,
+          dailyAverages.Sun.pH,
+        ],
+        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+        strokeWidth: 4,
+      },
+    ],
+  };
+
+  const TemperatureData = {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        data: [
+          dailyAverages.Mon.Temperature,
+          dailyAverages.Tue.Temperature,
+          dailyAverages.Wed.Temperature,
+          dailyAverages.Thu.Temperature,
+          dailyAverages.Fri.Temperature,
+          dailyAverages.Sat.Temperature,
+          dailyAverages.Sun.Temperature,
+        ],
+        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+        strokeWidth: 4,
+      },
+    ],
+  };
+
+  const TurbidityData = {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        data: [
+          dailyAverages.Mon.Turbidity,
+          dailyAverages.Tue.Turbidity,
+          dailyAverages.Wed.Turbidity,
+          dailyAverages.Thu.Turbidity,
+          dailyAverages.Fri.Turbidity,
+          dailyAverages.Sat.Turbidity,
+          dailyAverages.Sun.Turbidity,
+        ],
+        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+        strokeWidth: 4,
+      },
+    ],
+  };
+
+  const TDSData = {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        data: [
+          dailyAverages.Mon.TDS,
+          dailyAverages.Tue.TDS,
+          dailyAverages.Wed.TDS,
+          dailyAverages.Thu.TDS,
+          dailyAverages.Fri.TDS,
+          dailyAverages.Sat.TDS,
+          dailyAverages.Sun.TDS,
+        ],
         color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
         strokeWidth: 4,
       },
@@ -170,59 +225,6 @@ export default function Analyse() {
     barPercentage: 0.5,
     useShadowColorFromDataset: false,
     decimalPlaces: 0,
-  };
-
-  // Render custom labels for data points
-  const renderCustomLabels = ({ x, y, value }) => {
-    return (
-      <Text
-        key={value}
-        style={{
-          position: "absolute",
-          top: y - 20,
-          left: x - 20,
-          color: "white",
-          fontFamily: "Inter_700Bold",
-          fontSize: 14,
-          zIndex: 10, // Ensure it's above the chart
-        }}
-      >
-        {value}
-      </Text>
-    );
-  };
-
-  // Handle data point click event
-  const handleDataPointClick = (dataPoint, datasetIndex) => {
-    setClickedDataPoint({ dataPoint, datasetIndex });
-  };
-
-  // DataPointCard component to render small card near clicked data point
-  const DataPointCard = ({ x, y, value }) => {
-    if (!x || !y) return null;
-
-    return (
-      <View
-        style={{
-          position: "absolute",
-          left: x + 8,
-          top: y + 110, // Adjust the position as needed
-          backgroundColor: "white",
-          padding: 8,
-          borderRadius: 8,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          elevation: 5,
-        }}
-      >
-        <Text>{value}</Text>
-      </View>
-    );
   };
 
   return (
@@ -245,7 +247,30 @@ export default function Analyse() {
             showsVerticalScrollIndicator={false}
           >
             <BlurView
-              experimentalBlurMethod="dimezisBlurView"
+              // experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>Ph Value</Text>
+                {/* <Text style={styles.AverageText}>
+                  Average: {averageTemperature} °C
+                </Text> */}
+              </View>
+              <View ref={chartRef}>
+                <LineChart
+                  data={phData}
+                  width={360}
+                  height={160}
+                  chartConfig={chartConfig}
+                  yAxisSuffix={""}
+                />
+              </View>
+            </BlurView>
+
+            <BlurView
+              // experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.Box}
@@ -258,26 +283,63 @@ export default function Analyse() {
               </View>
               <View ref={chartRef}>
                 <LineChart
-                  data={data}
+                  data={TemperatureData}
                   width={360}
                   height={160}
                   chartConfig={chartConfig}
                   yAxisSuffix={" °C"}
-                  renderCustomLabels={renderCustomLabels}
-                  onDataPointClick={handleDataPointClick}
+                />
+              </View>
+            </BlurView>
+
+            <BlurView
+              // experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>Turbidity</Text>
+                {/* <Text style={styles.AverageText}>
+                  Average: {averageTemperature} °C
+                </Text> */}
+              </View>
+              <View ref={chartRef}>
+                <LineChart
+                  data={TurbidityData}
+                  width={360}
+                  height={160}
+                  chartConfig={chartConfig}
+                  yAxisSuffix={" NTU"}
+                />
+              </View>
+            </BlurView>
+
+            <BlurView
+              // experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.Box}
+            >
+              <View style={styles.Box1}>
+                <Text style={styles.NameText}>TDS Value</Text>
+                {/* <Text style={styles.AverageText}>
+                  Average: {averageTemperature} °C
+                </Text> */}
+              </View>
+              <View ref={chartRef}>
+                <LineChart
+                  data={TDSData}
+                  width={360}
+                  height={160}
+                  chartConfig={chartConfig}
+                  yAxisSuffix={" NTU"}
                 />
               </View>
             </BlurView>
           </ScrollView>
         </View>
       </View>
-      {clickedDataPoint && (
-        <DataPointCard
-          x={clickedDataPoint.dataPoint.x}
-          y={clickedDataPoint.dataPoint.y}
-          value={clickedDataPoint.dataPoint.value}
-        />
-      )}
     </SafeAreaView>
   );
 }

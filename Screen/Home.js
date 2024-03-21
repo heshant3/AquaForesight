@@ -92,7 +92,7 @@ export default function Home() {
         <View style={styles.Middle}>
           <View style={styles.MiddleTop}>
             <BlurView
-              experimentalBlurMethod="dimezisBlurView"
+              // experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               style={styles.Box}
               tint="default"
@@ -104,7 +104,7 @@ export default function Home() {
               </View>
             </BlurView>
             <BlurView
-              experimentalBlurMethod="dimezisBlurView"
+              // experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.Box}
@@ -119,7 +119,7 @@ export default function Home() {
           <View style={styles.MiddleMiddle}>
             <View style={styles.MiddleTop}>
               <BlurView
-                experimentalBlurMethod="dimezisBlurView"
+                // experimentalBlurMethod="dimezisBlurView"
                 intensity={50}
                 style={styles.Box}
                 tint="default"
@@ -135,7 +135,7 @@ export default function Home() {
                 </View>
               </BlurView>
               <BlurView
-                experimentalBlurMethod="dimezisBlurView"
+                // experimentalBlurMethod="dimezisBlurView"
                 intensity={50}
                 tint="default"
                 style={styles.Box}
@@ -150,7 +150,7 @@ export default function Home() {
           </View>
           <View style={styles.MiddleBottom}>
             <BlurView
-              experimentalBlurMethod="dimezisBlurView"
+              // experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBotom}
