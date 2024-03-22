@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import {
   useFonts,
@@ -32,13 +33,25 @@ import { db } from "../config";
 
 export default function Home() {
   const [sensorData, setSensorData] = useState(null);
+  const [Light, setLight] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = () => {
       const sensorsRef = ref(db, "SensorData");
+      const LightRef = ref(db, "Light");
+
       onChildChanged(sensorsRef, (snapshot) => {
         const newData = snapshot.val();
         setSensorData(newData);
+      });
+
+      onValue(LightRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && typeof data === "object" && "Level" in data) {
+          setLight(data.Level);
+        }
+        setLoading(false);
       });
     };
 
@@ -46,6 +59,7 @@ export default function Home() {
 
     return () => {
       off(ref(db, "SensorData"));
+      off(ref(db, "Light"));
     };
   }, []);
 
@@ -100,7 +114,13 @@ export default function Home() {
               <View style={styles.Box1}>
                 <FontAwesome6 name="temperature-half" size={30} color="#fff" />
                 <Text style={styles.NameText}>Temperature</Text>
-                <Text style={styles.ValueText}>{temperature}°C</Text>
+                {loading ? (
+                  <ActivityIndicator size="medium" color="#fff" />
+                ) : (
+                  <>
+                    <Text style={styles.ValueText}>{temperature}°C</Text>
+                  </>
+                )}
               </View>
             </BlurView>
             <BlurView
@@ -111,8 +131,14 @@ export default function Home() {
             >
               <View style={styles.Box1}>
                 <Entypo name="light-up" size={30} color="#fff" />
-                <Text style={styles.NameText}>Light</Text>
-                <Text style={styles.ValueText}>Light</Text>
+                <Text style={styles.NameText}>Darkness</Text>
+                {loading ? (
+                  <ActivityIndicator size="medium" color="#fff" />
+                ) : (
+                  <>
+                    <Text style={styles.ValueText}>{Light}%</Text>
+                  </>
+                )}
               </View>
             </BlurView>
           </View>
@@ -131,7 +157,13 @@ export default function Home() {
                     color="#fff"
                   />
                   <Text style={styles.NameText}>Ph value</Text>
-                  <Text style={styles.ValueText}>{pH}</Text>
+                  {loading ? (
+                    <ActivityIndicator size="medium" color="#fff" />
+                  ) : (
+                    <>
+                      <Text style={styles.ValueText}>{pH}</Text>
+                    </>
+                  )}
                 </View>
               </BlurView>
               <BlurView
@@ -143,7 +175,13 @@ export default function Home() {
                 <View style={styles.Box1}>
                   <Entypo name="water" size={30} color="#fff" />
                   <Text style={styles.NameText}>Turbidity</Text>
-                  <Text style={styles.ValueText}>{turbidity} NTU</Text>
+                  {loading ? (
+                    <ActivityIndicator size="medium" color="#fff" />
+                  ) : (
+                    <>
+                      <Text style={styles.ValueText}>{turbidity} NTU</Text>
+                    </>
+                  )}
                 </View>
               </BlurView>
             </View>
@@ -162,7 +200,13 @@ export default function Home() {
                   color="#fff"
                 />
                 <Text style={styles.NameTextBottom}>TDS</Text>
-                <Text style={styles.ValueTextBottom}>{tds} ppm</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Text style={styles.ValueTextBottom}>{tds} ppm</Text>
+                  </>
+                )}
               </View>
             </BlurView>
           </View>

@@ -307,7 +307,7 @@ export default function Analyse() {
               <View ref={chartRef}>
                 <LineChart
                   data={TurbidityData}
-                  width={360}
+                  width={320}
                   height={160}
                   chartConfig={chartConfig}
                   yAxisSuffix={" NTU"}
@@ -329,11 +329,11 @@ export default function Analyse() {
               </View>
               <View ref={chartRef}>
                 <LineChart
-                  data={TDSData}
-                  width={360}
+                  data={TurbidityData}
+                  width={320}
                   height={160}
                   chartConfig={chartConfig}
-                  yAxisSuffix={" NTU"}
+                  yAxisSuffix={" ppm"}
                 />
               </View>
             </BlurView>

@@ -21,19 +21,50 @@ import { ScaledSheet } from "react-native-size-matters";
 import ProgressBar from "react-native-progress/Bar";
 import { ref, onValue, set } from "firebase/database";
 import { db } from "../config";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function Feeder() {
   const [status, setStatus] = useState(true);
+  const [turnontime, setturnontime] = useState(true);
+  const [Food, setFood] = useState(true);
+  const [counter, setcounter] = useState(true);
+  console.log(Food);
+
   const [text, setText] = useState("");
+  const [text2, setText2] = useState("");
   const [buttonPressed, setButtonPressed] = useState(false);
 
   useEffect(() => {
     const statusRef = ref(db, "delays");
+    const turnontimeRef = ref(db, "delays");
+    const FoodRef = ref(db, "Food");
+    const counterRef = ref(db, "count");
 
     onValue(statusRef, (snapshot) => {
       const data = snapshot.val();
       if (data && typeof data === "object" && "status" in data) {
         setStatus(data.status);
+      }
+    });
+
+    onValue(turnontimeRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && typeof data === "object" && "turnontime" in data) {
+        setturnontime(data.turnontime);
+      }
+    });
+
+    onValue(counterRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setcounter(data);
+      }
+    });
+
+    onValue(FoodRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && typeof data === "object" && "Level" in data) {
+        setFood(data.Level);
       }
     });
   }, []);
@@ -45,13 +76,15 @@ export default function Feeder() {
     set(ref(db, "delays/button"), 1);
     set(ref(db, "delays/status"), 1);
     set(ref(db, "delays/timer"), 0);
-    setText("0");
+    set(ref(db, "count"), 0);
+    set(ref(db, "delays/turnontime"), 0);
+    setText("");
+    setText2("");
+    setcounter("0");
   };
 
   const handlePressOut = () => {
-    // Set buttonPressed to false when released
     setButtonPressed(false);
-    // Update the database with the released value
     set(ref(db, "delays/button"), 0);
     set(ref(db, "delays/status"), 0);
   };
@@ -60,15 +93,29 @@ export default function Feeder() {
     const numericValue = parseFloat(value);
 
     if (!isNaN(numericValue)) {
-      // Check if the parsed value is a valid number
-      setText(value); // Update local state with the current text value
-      // Update database with the new value
+      setText(value);
+
       set(ref(db, "delays/timer"), numericValue);
-      set(ref(db, "delays/status"), 1);
+      // set(ref(db, "delays/status"), 1);
     } else {
-      setText(""); // Clear the local state if the value is not a valid number
+      setText("");
+
       set(ref(db, "delays/timer"), 0);
-      set(ref(db, "delays/status"), 0);
+      // set(ref(db, "delays/status"), 0);
+    }
+  };
+
+  const handleTextChange2 = (value) => {
+    const numericValue = parseFloat(value);
+
+    if (!isNaN(numericValue)) {
+      setText2(value);
+
+      set(ref(db, "delays/turnontime"), numericValue);
+    } else {
+      setText2("");
+
+      set(ref(db, "delays/turnontime"), 0);
     }
   };
 
@@ -120,7 +167,22 @@ export default function Feeder() {
               style={styles.BoxBottom}
             >
               <View style={styles.Box1}>
-                <Text style={styles.NameText}>Timer</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <MaterialCommunityIcons
+                    name="camera-timer"
+                    size={20}
+                    color="#fff"
+                  />
+                  <Text style={[styles.NameText, { marginLeft: 10 }]}>
+                    {counter}
+                  </Text>
+                </View>
                 <TextInput
                   style={styles.input}
                   placeholder="Enter Timer"
@@ -139,6 +201,41 @@ export default function Feeder() {
               tint="default"
               style={styles.BoxBottom}
             >
+              <View style={styles.Box1}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <MaterialCommunityIcons
+                    name="timer-settings-outline"
+                    size={24}
+                    color="#fff"
+                  />
+                  <Text style={[styles.NameText, { marginLeft: 10 }]}>
+                    {turnontime}
+                  </Text>
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter On time"
+                  color="#fff"
+                  placeholderTextColor="#fff"
+                  onChangeText={handleTextChange2}
+                  value={text2}
+                  keyboardType="numeric"
+                />
+              </View>
+            </BlurView>
+
+            <BlurView
+              // experimentalBlurMethod="dimezisBlurView"
+              intensity={50}
+              tint="default"
+              style={styles.BoxBottom2}
+            >
               <TouchableOpacity
                 style={{
                   height: 100,
@@ -150,8 +247,7 @@ export default function Feeder() {
                 onPressOut={handlePressOut} // Called when released
               >
                 <View style={styles.Box1}>
-                  <Text style={styles.NameText}>Fish Feeder</Text>
-                  <Text style={styles.ValueText}>On</Text>
+                  <Text style={styles.NameText}>Feeder On</Text>
                 </View>
               </TouchableOpacity>
             </BlurView>
@@ -166,7 +262,7 @@ export default function Feeder() {
               <View style={styles.Box1}>
                 <View style={styles.progressBar}>
                   <ProgressBar
-                    progress={0.1}
+                    progress={1 - Food / 15} // Subtract progress value from
                     width={380}
                     height={30}
                     color={"#fff"}
@@ -278,6 +374,17 @@ const styles = ScaledSheet.create({
   BoxBottom: {
     width: "70%",
     height: "20%",
+    overflow: "hidden",
+    borderRadius: 10,
+    borderColor: "#fff",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  BoxBottom2: {
+    width: "70%",
+    height: "10%",
     overflow: "hidden",
     borderRadius: 10,
     borderColor: "#fff",
