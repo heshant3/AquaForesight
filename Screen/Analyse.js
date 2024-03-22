@@ -247,7 +247,7 @@ export default function Analyse() {
             showsVerticalScrollIndicator={false}
           >
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.Box}
@@ -270,7 +270,7 @@ export default function Analyse() {
             </BlurView>
 
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.Box}
@@ -293,7 +293,7 @@ export default function Analyse() {
             </BlurView>
 
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.Box}
@@ -316,7 +316,7 @@ export default function Analyse() {
             </BlurView>
 
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.Box}

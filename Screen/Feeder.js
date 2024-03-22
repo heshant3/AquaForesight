@@ -28,7 +28,6 @@ export default function Feeder() {
   const [turnontime, setturnontime] = useState(true);
   const [Food, setFood] = useState(true);
   const [counter, setcounter] = useState(true);
-  console.log(Food);
 
   const [text, setText] = useState("");
   const [text2, setText2] = useState("");
@@ -145,7 +144,7 @@ export default function Feeder() {
         </View>
         <View style={styles.Middle}>
           <BlurView
-            // experimentalBlurMethod="dimezisBlurView"
+            experimentalBlurMethod="dimezisBlurView"
             intensity={50}
             tint="default"
             style={styles.Box}
@@ -161,7 +160,7 @@ export default function Feeder() {
         <View style={styles.Bottom}>
           <View style={styles.BottomLeft}>
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBottom}
@@ -196,7 +195,7 @@ export default function Feeder() {
             </BlurView>
 
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBottom}
@@ -231,7 +230,7 @@ export default function Feeder() {
             </BlurView>
 
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBottom2}
@@ -254,7 +253,7 @@ export default function Feeder() {
           </View>
           <View style={styles.BottomRight}>
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBottomFood}

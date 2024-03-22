@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AquaForesight",
+    "name": "Aqua Foresight",
     "slug": "AquaForesight",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -32,7 +32,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "0c3d74b5-9722-4fe2-9a7c-f5e54db9394a"
+        "projectId": "c931d5ad-5b09-43b0-ac4a-37ad9c1eecc5"
       }
     }
   }

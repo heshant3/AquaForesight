@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import {
   useFonts,
@@ -20,6 +21,7 @@ import {
   FontAwesome6,
   Entypo,
   MaterialCommunityIcons,
+  FontAwesome5,
 } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
 import {
@@ -35,6 +37,7 @@ export default function Home() {
   const [sensorData, setSensorData] = useState(null);
   const [Light, setLight] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchData = () => {
@@ -76,7 +79,18 @@ export default function Home() {
         ? sensorData.Turbidity.toFixed(1)
         : "0.0";
     tds = sensorData.TDS !== undefined ? sensorData.TDS.toFixed(1) : "0.0";
+
+    // Check if temperature is greater than 35
   }
+
+  useEffect(() => {
+    // Check if temperature is greater than 35
+    if (parseFloat(temperature) > 40) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [temperature]); // Only re-run this effect if temperature changes
 
   let [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -106,7 +120,7 @@ export default function Home() {
         <View style={styles.Middle}>
           <View style={styles.MiddleTop}>
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               style={styles.Box}
               tint="default"
@@ -124,7 +138,7 @@ export default function Home() {
               </View>
             </BlurView>
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.Box}
@@ -145,7 +159,7 @@ export default function Home() {
           <View style={styles.MiddleMiddle}>
             <View style={styles.MiddleTop}>
               <BlurView
-                // experimentalBlurMethod="dimezisBlurView"
+                experimentalBlurMethod="dimezisBlurView"
                 intensity={50}
                 style={styles.Box}
                 tint="default"
@@ -167,7 +181,7 @@ export default function Home() {
                 </View>
               </BlurView>
               <BlurView
-                // experimentalBlurMethod="dimezisBlurView"
+                experimentalBlurMethod="dimezisBlurView"
                 intensity={50}
                 tint="default"
                 style={styles.Box}
@@ -188,7 +202,7 @@ export default function Home() {
           </View>
           <View style={styles.MiddleBottom}>
             <BlurView
-              // experimentalBlurMethod="dimezisBlurView"
+              experimentalBlurMethod="dimezisBlurView"
               intensity={50}
               tint="default"
               style={styles.BoxBotom}
@@ -212,6 +226,27 @@ export default function Home() {
           </View>
         </View>
       </View>
+
+      {/* Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View
+          style={styles.centeredView}
+          onTouchEnd={() => setModalVisible(!modalVisible)}
+        >
+          <View style={styles.modalView}>
+            {/* <FontAwesome5 name="car-crash" size={30} color="#ff5866" /> */}
+            <FontAwesome5 name="temperature-high" size={24} color="#ff5866" />
+            <Text style={styles.Text}>Temperature is High</Text>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -334,5 +369,29 @@ const styles = ScaledSheet.create({
   Bottom: {
     flex: 1,
     backgroundColor: "blue",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+  },
+  modalView: {
+    flexDirection: "row",
+    height: "10%",
+    width: "80%",
+    overflow: "hidden",
+    borderRadius: 20,
+    backgroundColor: "white",
+    borderWidth: 1.5,
+    borderColor: "white",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+
+  Text: {
+    fontSize: "25@mvs",
+    fontFamily: "Inter_500Medium",
+    color: "#595959",
   },
 });
